@@ -1,4 +1,4 @@
-Subject: [PATCH] Bluetooth: MediaTek BlueAngel stack for the MT6620 (vee4ss)
+Subject: [PATCH] Bluetooth: MediaTek BlueAngel stack for the MT6620 (vee4ss, vee5ss)
 
 The MT6620 is driven through WMT/STP, /dev/stpbt and the stock mtkbt
 daemon, not BlueZ/rfkill. BlueAngel versions of BluetoothService,
