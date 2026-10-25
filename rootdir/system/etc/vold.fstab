@@ -1,0 +1,1 @@
+dev_mount sdcard1 /storage/sdcard1 auto /devices/platform/mtk-sd.1/mmc_host/mmc1

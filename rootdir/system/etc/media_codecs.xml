@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Minimal codec list for CM10 software encoders on the MT6575 LGs. -->
+<MediaCodecs>
+    <Decoders>
+        <!-- MediaTek hardware video decoders, under the aliases the
+             device's libstagefrighthw wrapper publishes so CM copies their
+             output to the screen (see device/lge/mt6575-common/omx). The software
+             AVC decoder only handles Baseline. -->
+        <MediaCodec name="OMX.google.MTK.VIDEO.DECODER.MPEG4" type="video/mp4v-es" />
+        <MediaCodec name="OMX.google.MTK.VIDEO.DECODER.H263" type="video/3gpp" />
+        <MediaCodec name="OMX.google.MTK.VIDEO.DECODER.AVC" type="video/avc" >
+            <Quirk name="wants-NAL-fragments" />
+        </MediaCodec>
+        <MediaCodec name="OMX.google.MTK.VIDEO.DECODER.VPX" type="video/x-vnd.on2.vp8" />
+        <MediaCodec name="OMX.google.mpeg4.decoder" type="video/mp4v-es" />
+        <MediaCodec name="OMX.google.h263.decoder" type="video/3gpp" />
+        <MediaCodec name="OMX.google.h264.decoder" type="video/avc" />
+        <MediaCodec name="OMX.google.aac.decoder" type="audio/mp4a-latm" />
+        <MediaCodec name="OMX.google.amrnb.decoder" type="audio/3gpp" />
+        <MediaCodec name="OMX.google.amrwb.decoder" type="audio/amr-wb" />
+        <MediaCodec name="OMX.google.mp3.decoder" type="audio/mpeg" />
+        <MediaCodec name="OMX.google.vorbis.decoder" type="audio/vorbis" />
+        <MediaCodec name="OMX.google.raw.decoder" type="audio/raw" />
+    </Decoders>
+    <Encoders>
+        <!-- MediaTek hardware encoders, as in the stock media_codecs.xml.
+             AVC is listed but not used for camcorder profiles: CM's
+             MPEG4Writer rejects its codec config. -->
+        <MediaCodec name="OMX.MTK.VIDEO.ENCODER.MPEG4" type="video/mp4v-es" >
+            <Quirk name="avoid-memcpy-input-recording-frames" />
+        </MediaCodec>
+        <MediaCodec name="OMX.MTK.VIDEO.ENCODER.H263" type="video/3gpp" >
+            <Quirk name="avoid-memcpy-input-recording-frames" />
+        </MediaCodec>
+        <MediaCodec name="OMX.MTK.VIDEO.ENCODER.AVC" type="video/avc" >
+            <Quirk name="avoid-memcpy-input-recording-frames" />
+        </MediaCodec>
+        <MediaCodec name="OMX.google.mpeg4.encoder" type="video/mp4v-es" />
+        <MediaCodec name="OMX.google.h263.encoder" type="video/3gpp" />
+        <MediaCodec name="OMX.google.aac.encoder" type="audio/mp4a-latm" />
+        <MediaCodec name="OMX.google.amrnb.encoder" type="audio/3gpp" />
+        <MediaCodec name="OMX.google.amrwb.encoder" type="audio/amr-wb" />
+    </Encoders>
+</MediaCodecs>

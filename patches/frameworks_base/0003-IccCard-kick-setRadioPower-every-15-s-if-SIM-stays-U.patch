@@ -1,0 +1,61 @@
+From 91170ec3fb9d542854db5c75b3ba6f6219677c8a Mon Sep 17 00:00:00 2001
+From: Juan Manuel Reategui Solis <reateguisolisjm@gmail.com>
+Date: Tue, 30 Jun 2026 18:26:42 -0500
+Subject: [PATCH 3/3] IccCard: kick setRadioPower every 15 s if SIM stays
+ UNKNOWN (MTK fix)
+
+MTK rild sometimes reports the radio as already-on to the framework
+(causing GsmServiceStateTracker to skip SET_RADIO_POWER), but the modem
+is actually in CFUN=0 and rejects all GET_SIM_STATUS requests with
+RADIO_NOT_AVAILABLE.  Add a retry counter to the existing poll loop: every
+5 retries (15 s) send setRadioPower(true) to kick the modem out of CFUN=0.
+Reset the counter when a valid card status is received.
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Change-Id: Id8bb3c92480f02729705c93f3adcf224fc92ea11
+---
+ .../java/com/android/internal/telephony/IccCard.java   | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/telephony/java/com/android/internal/telephony/IccCard.java b/telephony/java/com/android/internal/telephony/IccCard.java
+index cec112d1bba..96f0dcedfa9 100644
+--- a/telephony/java/com/android/internal/telephony/IccCard.java
++++ b/telephony/java/com/android/internal/telephony/IccCard.java
+@@ -55,6 +55,7 @@ public class IccCard {
+     protected boolean mDbg;
+ 
+     protected IccCardStatus mIccCardStatus = null;
++    private int mSimPollRetryCount = 0;
+     protected State mState = null;
+     private final Object mStateMonitor = new Object();
+ 
+@@ -509,6 +510,7 @@ public class IccCard {
+                     && ((CommandException) ar.exception).getCommandError()
+                             == CommandException.Error.RADIO_NOT_AVAILABLE
+                     && mIccCardStatus == null) {
++                mSimPollRetryCount++;
+                 mHandler.sendMessageDelayed(
+                         mHandler.obtainMessage(EVENT_POLL_SIM_STATUS_RETRY), 3000);
+             }
+@@ -530,6 +532,7 @@ public class IccCard {
+ 
+         oldState = mState;
+         mIccCardStatus = newCardStatus;
++        mSimPollRetryCount = 0;
+         newState = getIccCardState();
+ 
+         synchronized (mStateMonitor) {
+@@ -821,6 +824,13 @@ public class IccCard {
+                     // Retry poll started in getIccCardStatusDone when the MTK modem
+                     // returns RADIO_NOT_AVAILABLE with a PIN-locked SIM.
+                     if (mIccCardStatus == null) {
++                        // Every 5 retries (15 s) kick setRadioPower(true).  MTK rild
++                        // sometimes reports the radio as already-on to the framework
++                        // (so GsmServiceStateTracker never sends SET_RADIO_POWER), but
++                        // the modem is actually still in CFUN=0 and rejects GET_SIM_STATUS.
++                        if (mSimPollRetryCount > 0 && mSimPollRetryCount % 5 == 0) {
++                            mPhone.mCM.setRadioPower(true, null);
++                        }
+                         mPhone.mCM.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE));
+                     }
+                     break;

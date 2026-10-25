@@ -1,0 +1,8 @@
+# fstab.mt6575 — LG L4 II / L5 II (MT6575)
+# Particiones verificadas con /proc/dumchar_info del dispositivo
+#
+# <src>                       <mnt_point> <type> <mnt_flags and options>              <fs_mgr_flags>
+/dev/block/mmcblk0p8          /system     ext4   ro,noatime                           wait
+/dev/block/mmcblk0p10         /data       ext4   noatime,nosuid,nodev,noauto_da_alloc                  wait,encryptable=footer
+/dev/block/mmcblk0p9          /cache      ext4   noatime,nosuid,nodev                 wait
+/dev/block/mmcblk1p1          /external_sd vfat  noatime,nosuid,nodev,noexec,uid=1000,gid=1015,errors=continue voldmanaged=sdcard1:auto

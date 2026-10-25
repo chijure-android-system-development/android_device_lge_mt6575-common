@@ -1,0 +1,71 @@
+#!/system/bin/sh
+
+create_node() {
+    path="$1"
+    major="$2"
+    minor="$3"
+
+    if [ ! -e "$path" ]; then
+        /system/xbin/mknod "$path" c "$major" "$minor"
+    fi
+}
+
+create_node /dev/M4U_device 188 0
+chown 1000.1006 /dev/M4U_device
+chmod 0660 /dev/M4U_device
+
+create_node /dev/stpwmt 190 0
+create_node /dev/stpgps 191 0
+create_node /dev/stpbt 192 0
+create_node /dev/wmtWifi 153 0
+
+chown 1000.1000 /dev/stpwmt
+chown 1021.1021 /dev/stpgps
+chown 1002.1001 /dev/stpbt
+chown 1000.1000 /dev/wmtWifi
+
+chmod 0660 /dev/stpwmt /dev/stpgps /dev/stpbt /dev/wmtWifi
+
+create_node /dev/ccci_fs 178 0
+create_node /dev/ccci_rpc 178 1
+create_node /dev/ccci_sys_rx 184 2
+create_node /dev/ccci_sys_tx 184 3
+create_node /dev/ccci_pcm_rx 184 4
+create_node /dev/ccci_pcm_tx 184 5
+create_node /dev/ccci_ipc_1220_0 183 0
+create_node /dev/ccci_uem_rx 184 18
+create_node /dev/ccci_uem_tx 184 19
+create_node /dev/ccci_md_log_rx 184 42
+create_node /dev/ccci_md_log_tx 184 43
+
+chown 1001.1001 /dev/ccci_fs /dev/ccci_rpc \
+    /dev/ccci_sys_rx /dev/ccci_sys_tx \
+    /dev/ccci_pcm_rx /dev/ccci_pcm_tx \
+    /dev/ccci_ipc_1220_0 \
+    /dev/ccci_uem_rx /dev/ccci_uem_tx \
+    /dev/ccci_md_log_rx /dev/ccci_md_log_tx
+
+chmod 0660 /dev/ccci_fs /dev/ccci_rpc \
+    /dev/ccci_sys_rx /dev/ccci_sys_tx \
+    /dev/ccci_pcm_rx /dev/ccci_pcm_tx \
+    /dev/ccci_ipc_1220_0 \
+    /dev/ccci_uem_rx /dev/ccci_uem_tx \
+    /dev/ccci_md_log_rx /dev/ccci_md_log_tx
+
+# ttyC* are cdev nodes (major 169), not TTY-framework devices — must be mknod'd explicitly.
+# gsm0710muxd opens /dev/ttyC0 to multiplex AT channels after ccci_mdinit completes handshake.
+create_node /dev/ttyC0 169 0
+create_node /dev/ttyC1 169 1
+create_node /dev/ttyC2 169 2
+
+chown 1001.1001 /dev/ttyC0 /dev/ttyC1 /dev/ttyC2
+chmod 0660 /dev/ttyC0 /dev/ttyC1 /dev/ttyC2
+
+create_node /dev/devmap 196 0
+chmod 0666 /dev/devmap
+
+# MediaTek hardware video codec (vcodec_kernel_driver), used by the
+# OMX.MTK.VIDEO.* components in mediaserver.
+create_node /dev/Vcodec 160 0
+chown 1000.1013 /dev/Vcodec
+chmod 0660 /dev/Vcodec

@@ -1,0 +1,9 @@
+#!/system/bin/sh
+# BMM050/056 magnetometer: kernel driver defaults to suspend mode (2) on boot.
+# Without msensord running, it never transitions to normal mode, so X and Y
+# axes read as zero. Write normal mode (0) to cpsopmode to enable full 3-axis
+# sampling. The sysfs write is safe to retry on reboot.
+MSENSOR=/sys/bus/platform/drivers/msensor/cpsopmode
+if [ -f "$MSENSOR" ]; then
+    echo 0 > "$MSENSOR"
+fi

@@ -1,0 +1,422 @@
+Subject: [PATCH] MT6575 HWC/GraphicBuffer ABI for vee4ss
+
+LG's MT6575 graphics blobs use MediaTek extensions to the JB HWC and
+GraphicBuffer ABI. Under VEE4SS_MTK_HWC_ABI (TARGET_DEVICE=vee4ss only):
+GraphicBuffer keeps the stock mMva/mSize members and the mmumapper
+map/unmap interface, SurfaceFlinger fills the MTK layer fields
+(GraphicBuffer*, alpha, 3x3 transform) and sets private list bit 0x2
+before set(). Without that bit the vendor HWC never posts the frame.
+
+---
+diff --git a/include/ui/GraphicBuffer.h b/include/ui/GraphicBuffer.h
+index 304bcfcac..b799d1362 100644
+--- a/include/ui/GraphicBuffer.h
++++ b/include/ui/GraphicBuffer.h
+@@ -104,6 +104,11 @@ public:
+     status_t lock(uint32_t usage, const Rect& rect, void** vaddr);
+     status_t unlock();
+ 
++#ifdef VEE4SS_MTK_HWC_ABI
++    status_t mapBuffer();
++    status_t unmapBuffer();
++#endif
++
+     ANativeWindowBuffer* getNativeBuffer() const;
+     
+     void setIndex(int index);
+@@ -164,6 +169,10 @@ private:
+     // If we're wrapping another buffer then this reference will make sure it
+     // doesn't get freed.
+     sp<ANativeWindowBuffer> mWrappedBuffer;
++#ifdef VEE4SS_MTK_HWC_ABI
++    uint32_t mMva;   // Stock MT6575 ABI: absolute object offset 124.
++    uint32_t mSize;  // Stock MT6575 ABI: absolute object offset 128.
++#endif
+ };
+ 
+ }; // namespace android
+diff --git a/include/ui/GraphicBufferAllocator.h b/include/ui/GraphicBufferAllocator.h
+index c4b5f6395..c28dfbd3c 100644
+--- a/include/ui/GraphicBufferAllocator.h
++++ b/include/ui/GraphicBufferAllocator.h
+@@ -36,6 +36,7 @@ namespace android {
+ // ---------------------------------------------------------------------------
+ 
+ class String8;
++struct mmu_mapper_device_t;
+ 
+ class GraphicBufferAllocator : public Singleton<GraphicBufferAllocator>
+ {
+@@ -75,6 +76,13 @@ public:
+ 
+     status_t free(buffer_handle_t handle);
+ 
++    status_t map(uint32_t addr, uint32_t size, uint32_t offset,
++            uint32_t format, uint32_t usage, uint32_t* mva);
++    status_t unmap(uint32_t addr, uint32_t size, uint32_t offset,
++            uint32_t format);
++    status_t query(uint32_t addr, uint32_t size, uint32_t format,
++            uint32_t* mva);
++
+     void dump(String8& res) const;
+     static void dumpToSystemLog();
+ 
+@@ -94,8 +102,12 @@ private:
+     friend class Singleton<GraphicBufferAllocator>;
+     GraphicBufferAllocator();
+     ~GraphicBufferAllocator();
++
++    status_t initMapper();
++    void uninitMapper();
+     
+     alloc_device_t  *mAllocDev;
++    mmu_mapper_device_t *mMapperDev;
+ };
+ 
+ // ---------------------------------------------------------------------------
+diff --git a/libs/gui/Android.mk b/libs/gui/Android.mk
+index e71650f3b..3ec40c26f 100644
+--- a/libs/gui/Android.mk
++++ b/libs/gui/Android.mk
+@@ -1,6 +1,10 @@
+ LOCAL_PATH:= $(call my-dir)
+ include $(CLEAR_VARS)
+ 
++ifeq ($(TARGET_DEVICE),vee4ss)
++LOCAL_CFLAGS += -DVEE4SS_MTK_HWC_ABI
++endif
++
+ LOCAL_SRC_FILES:= \
+ 	BitTube.cpp \
+ 	BufferQueue.cpp \
+diff --git a/libs/ui/Android.mk b/libs/ui/Android.mk
+index 719ddae9b..1b052a97d 100644
+--- a/libs/ui/Android.mk
++++ b/libs/ui/Android.mk
+@@ -15,6 +15,10 @@
+ LOCAL_PATH:= $(call my-dir)
+ include $(CLEAR_VARS)
+ 
++ifeq ($(TARGET_DEVICE),vee4ss)
++LOCAL_CFLAGS += -DVEE4SS_MTK_HWC_ABI
++endif
++
+ LOCAL_SRC_FILES:= \
+ 	FramebufferNativeWindow.cpp \
+ 	GraphicBuffer.cpp \
+diff --git a/libs/ui/GraphicBuffer.cpp b/libs/ui/GraphicBuffer.cpp
+index 7ac150948..367463972 100644
+--- a/libs/ui/GraphicBuffer.cpp
++++ b/libs/ui/GraphicBuffer.cpp
+@@ -37,6 +37,9 @@ namespace android {
+ GraphicBuffer::GraphicBuffer()
+     : BASE(), mOwner(ownData), mBufferMapper(GraphicBufferMapper::get()),
+       mInitCheck(NO_ERROR), mIndex(-1)
++#ifdef VEE4SS_MTK_HWC_ABI
++      , mMva(0), mSize(0)
++#endif
+ {
+     width  = 
+     height = 
+@@ -50,6 +53,9 @@ GraphicBuffer::GraphicBuffer(uint32_t w, uint32_t h,
+         PixelFormat reqFormat, uint32_t reqUsage)
+     : BASE(), mOwner(ownData), mBufferMapper(GraphicBufferMapper::get()),
+       mInitCheck(NO_ERROR), mIndex(-1)
++#ifdef VEE4SS_MTK_HWC_ABI
++      , mMva(0), mSize(0)
++#endif
+ {
+     width  = 
+     height = 
+@@ -65,6 +71,9 @@ GraphicBuffer::GraphicBuffer(uint32_t w, uint32_t h,
+         PixelFormat reqFormat, uint32_t reqUsage, uint32_t bufferSize)
+     : BASE(), mOwner(ownData), mBufferMapper(GraphicBufferMapper::get()),
+       mInitCheck(NO_ERROR), mIndex(-1)
++#ifdef VEE4SS_MTK_HWC_ABI
++      , mMva(0), mSize(0)
++#endif
+ {
+     width  =
+     height =
+@@ -82,6 +91,9 @@ GraphicBuffer::GraphicBuffer(uint32_t w, uint32_t h,
+     : BASE(), mOwner(keepOwnership ? ownHandle : ownNone),
+       mBufferMapper(GraphicBufferMapper::get()),
+       mInitCheck(NO_ERROR), mIndex(-1)
++#ifdef VEE4SS_MTK_HWC_ABI
++      , mMva(0), mSize(0)
++#endif
+ {
+     width  = w;
+     height = h;
+@@ -95,6 +107,9 @@ GraphicBuffer::GraphicBuffer(ANativeWindowBuffer* buffer, bool keepOwnership)
+     : BASE(), mOwner(keepOwnership ? ownHandle : ownNone),
+       mBufferMapper(GraphicBufferMapper::get()),
+       mInitCheck(NO_ERROR), mIndex(-1), mWrappedBuffer(buffer)
++#ifdef VEE4SS_MTK_HWC_ABI
++      , mMva(0), mSize(0)
++#endif
+ {
+     width  = buffer->width;
+     height = buffer->height;
+@@ -106,6 +121,9 @@ GraphicBuffer::GraphicBuffer(ANativeWindowBuffer* buffer, bool keepOwnership)
+ 
+ GraphicBuffer::~GraphicBuffer()
+ {
++#ifdef VEE4SS_MTK_HWC_ABI
++    if (mMva != 0) unmapBuffer();
++#endif
+     if (handle) {
+         free_handle();
+     }
+@@ -213,6 +231,60 @@ status_t GraphicBuffer::unlock()
+     return res;
+ }
+ 
++#ifdef VEE4SS_MTK_HWC_ABI
++status_t GraphicBuffer::mapBuffer()
++{
++    void* vaddr = NULL;
++    status_t err = lock(0x102, &vaddr);
++    if (err != NO_ERROR) return err;
++
++    int bpp = (format == 0x100) ? 2 : bytesPerPixel(format);
++    if (bpp <= 0) {
++        unlock();
++        return BAD_VALUE;
++    }
++
++    const uint32_t size = width * height * bpp;
++    if (mMva != 0 || mSize != 0) {
++        err = (mMva != 0 && mSize == size) ? NO_ERROR : BAD_VALUE;
++    } else {
++        mSize = size;
++        GraphicBufferAllocator& allocator(GraphicBufferAllocator::get());
++        err = allocator.map(reinterpret_cast<uint32_t>(vaddr), width, height,
++                size, format, &mMva);
++        if (err != NO_ERROR) {
++            mMva = 0;
++            mSize = 0;
++        }
++    }
++    unlock();
++    return err;
++}
++
++status_t GraphicBuffer::unmapBuffer()
++{
++    void* vaddr = NULL;
++    status_t err = lock(0x102, &vaddr);
++    if (err != NO_ERROR) return err;
++
++    int bpp = (format == 0x100) ? 2 : bytesPerPixel(format);
++    const uint32_t size = bpp > 0 ? width * height * bpp : 0;
++    if (size == 0 || mSize != size || mMva == 0) {
++        unlock();
++        return BAD_VALUE;
++    }
++
++    GraphicBufferAllocator& allocator(GraphicBufferAllocator::get());
++    err = allocator.unmap(reinterpret_cast<uint32_t>(vaddr), size, format, mMva);
++    if (err == NO_ERROR) {
++        mMva = 0;
++        mSize = 0;
++    }
++    unlock();
++    return err;
++}
++#endif
++
+ size_t GraphicBuffer::getFlattenedSize() const {
+     return (8 + (handle ? handle->numInts : 0))*sizeof(int);
+ }
+diff --git a/libs/ui/GraphicBufferAllocator.cpp b/libs/ui/GraphicBufferAllocator.cpp
+index 7e93a7f76..4d8d7d321 100644
+--- a/libs/ui/GraphicBufferAllocator.cpp
++++ b/libs/ui/GraphicBufferAllocator.cpp
+@@ -29,6 +29,16 @@
+ namespace android {
+ // ---------------------------------------------------------------------------
+ 
++struct mmu_mapper_device_t {
++    hw_device_t common;
++    int (*map)(uint32_t addr, uint32_t size, uint32_t offset,
++            uint32_t format, uint32_t usage, uint32_t* mva);
++    int (*unmap)(uint32_t addr, uint32_t size, uint32_t offset,
++            uint32_t format);
++    int (*query)(uint32_t addr, uint32_t size, uint32_t format,
++            uint32_t* mva);
++};
++
+ ANDROID_SINGLETON_STATIC_INSTANCE( GraphicBufferAllocator )
+ 
+ Mutex GraphicBufferAllocator::sLock;
+@@ -36,7 +46,7 @@ KeyedVector<buffer_handle_t,
+     GraphicBufferAllocator::alloc_rec_t> GraphicBufferAllocator::sAllocList;
+ 
+ GraphicBufferAllocator::GraphicBufferAllocator()
+-    : mAllocDev(0)
++    : mAllocDev(0), mMapperDev(0)
+ {
+     hw_module_t const* module;
+     int err = hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module);
+@@ -44,13 +54,65 @@ GraphicBufferAllocator::GraphicBufferAllocator()
+     if (err == 0) {
+         gralloc_open(module, &mAllocDev);
+     }
++    initMapper();
+ }
+ 
+ GraphicBufferAllocator::~GraphicBufferAllocator()
+ {
++    uninitMapper();
+     gralloc_close(mAllocDev);
+ }
+ 
++status_t GraphicBufferAllocator::initMapper()
++{
++    hw_module_t const* module;
++    int err = hw_get_module("mmumapper", &module);
++    if (err != 0) {
++        ALOGE("FATAL: can't find the mmumapper module (%s)", strerror(-err));
++        return err;
++    }
++
++    err = module->methods->open(module, "mmumapper",
++            reinterpret_cast<hw_device_t**>(&mMapperDev));
++    ALOGE_IF(err, "couldn't open mmumapper HAL (%s)", strerror(-err));
++    return err;
++}
++
++void GraphicBufferAllocator::uninitMapper()
++{
++    if (mMapperDev != 0) {
++        mMapperDev->common.close(&mMapperDev->common);
++        mMapperDev = 0;
++    }
++}
++
++status_t GraphicBufferAllocator::map(uint32_t addr, uint32_t size,
++        uint32_t offset, uint32_t format, uint32_t usage, uint32_t* mva)
++{
++    if (mMapperDev == 0 || mMapperDev->map == 0) {
++        return -1;
++    }
++    return mMapperDev->map(addr, size, offset, format, usage, mva);
++}
++
++status_t GraphicBufferAllocator::unmap(uint32_t addr, uint32_t size,
++        uint32_t offset, uint32_t format)
++{
++    if (mMapperDev == 0 || mMapperDev->unmap == 0) {
++        return -1;
++    }
++    return mMapperDev->unmap(addr, size, offset, format);
++}
++
++status_t GraphicBufferAllocator::query(uint32_t addr, uint32_t size,
++        uint32_t format, uint32_t* mva)
++{
++    if (mMapperDev == 0 || mMapperDev->query == 0) {
++        return -1;
++    }
++    return mMapperDev->query(addr, size, format, mva);
++}
++
+ void GraphicBufferAllocator::dump(String8& result) const
+ {
+     Mutex::Autolock _l(sLock);
+diff --git a/services/surfaceflinger/Android.mk b/services/surfaceflinger/Android.mk
+index a0b298bfd..137ad7e1e 100644
+--- a/services/surfaceflinger/Android.mk
++++ b/services/surfaceflinger/Android.mk
+@@ -20,6 +20,11 @@ LOCAL_SRC_FILES:= \
+ LOCAL_CFLAGS:= -DLOG_TAG=\"SurfaceFlinger\"
+ LOCAL_CFLAGS += -DGL_GLEXT_PROTOTYPES -DEGL_EGLEXT_PROTOTYPES
+ 
++# The stock MT6575 HWC blob uses MediaTek's extended JB layer-list ABI.
++ifeq ($(TARGET_DEVICE),vee4ss)
++    LOCAL_CFLAGS += -DVEE4SS_MTK_HWC_ABI
++endif
++
+ ifeq ($(TARGET_BOARD_PLATFORM), omap4)
+ 	LOCAL_CFLAGS += -DHAS_CONTEXT_PRIORITY
+ endif
+diff --git a/services/surfaceflinger/DisplayHardware/HWComposer.cpp b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+index ae7c196b3..34b5f80f0 100644
+--- a/services/surfaceflinger/DisplayHardware/HWComposer.cpp
++++ b/services/surfaceflinger/DisplayHardware/HWComposer.cpp
+@@ -155,7 +155,7 @@ status_t HWComposer::createWorkList(size_t numLayers) {
+         if (!mList || mCapacity < numLayers) {
+             free(mList);
+             size_t size = sizeof(hwc_layer_list) + numLayers*sizeof(hwc_layer_t);
+-            mList = (hwc_layer_list_t*)malloc(size);
++            mList = (hwc_layer_list_t*)calloc(1, size);
+             mCapacity = numLayers;
+         }
+         mList->flags = HWC_GEOMETRY_CHANGED;
+@@ -206,9 +206,16 @@ size_t HWComposer::getLayerCount(int type) const {
+ }
+ 
+ status_t HWComposer::commit() const {
++#ifdef VEE4SS_MTK_HWC_ABI
++    /* MTK's HWC blob only posts the framebuffer when this private bit is set. */
++    if (mList) mList->mtkFlags |= 0x2; // LAYERS_SWAP_REQUIRED
++#endif
+     int err = mHwc->set(mHwc, mDpy, mSur, mList);
+     if (mList) {
+         mList->flags &= ~HWC_GEOMETRY_CHANGED;
++#ifdef VEE4SS_MTK_HWC_ABI
++        mList->mtkFlags &= ~0x6;
++#endif
+     }
+     return (status_t)err;
+ }
+diff --git a/services/surfaceflinger/Layer.cpp b/services/surfaceflinger/Layer.cpp
+index 520a9fbc0..c3f6c689d 100644
+--- a/services/surfaceflinger/Layer.cpp
++++ b/services/surfaceflinger/Layer.cpp
+@@ -315,6 +315,15 @@ void Layer::setGeometry(hwc_layer_t* hwcl)
+     hwcl->sourceCrop.top    = crop.top;
+     hwcl->sourceCrop.right  = crop.right;
+     hwcl->sourceCrop.bottom = crop.bottom;
++
++#ifdef VEE4SS_MTK_HWC_ABI
++    hwcl->mtkAlpha = s.alpha;
++    for (size_t column = 0; column < 3; column++) {
++        for (size_t row = 0; row < 3; row++) {
++            hwcl->mtkTransform[column * 3 + row] = tr[column][row];
++        }
++    }
++#endif
+ }
+ 
+ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
+@@ -328,6 +337,14 @@ void Layer::setPerFrameData(hwc_layer_t* hwcl) {
+     } else {
+         hwcl->handle = buffer->handle;
+     }
++#ifdef VEE4SS_MTK_HWC_ABI
++    /* Stock only registers MVA for its supported video formats, not RGB UI. */
++    if (buffer != NULL && buffer->format != 1 && buffer->format != 2 &&
++            buffer->format != 5) {
++        buffer->mapBuffer();
++    }
++    hwcl->mtkBuffer = buffer.get();
++#endif
+ }
+ 
+ void Layer::onDraw(const Region& clip) const
+diff --git a/services/surfaceflinger/LayerBase.cpp b/services/surfaceflinger/LayerBase.cpp
+index 4efb7be07..70e49a645 100644
+--- a/services/surfaceflinger/LayerBase.cpp
++++ b/services/surfaceflinger/LayerBase.cpp
+@@ -329,6 +329,9 @@ void LayerBase::setGeometry(hwc_layer_t* hwcl)
+ void LayerBase::setPerFrameData(hwc_layer_t* hwcl) {
+     hwcl->compositionType = HWC_FRAMEBUFFER;
+     hwcl->handle = NULL;
++#ifdef VEE4SS_MTK_HWC_ABI
++    hwcl->mtkBuffer = NULL;
++#endif
+ }
+ 
+ void LayerBase::setFiltering(bool filtering)

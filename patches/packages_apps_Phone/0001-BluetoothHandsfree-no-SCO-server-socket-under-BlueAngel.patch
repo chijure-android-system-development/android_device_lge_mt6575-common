@@ -1,0 +1,27 @@
+Subject: [PATCH] BluetoothHandsfree: no SCO server socket to close under BlueAngel
+
+With the MediaTek stack the incoming SCO server socket is never created;
+closing it crashed com.android.phone when Bluetooth turned off.
+
+---
+diff --git a/src/com/android/phone/BluetoothHandsfree.java b/src/com/android/phone/BluetoothHandsfree.java
+index 59fa21d9..cd251ade 100755
+--- a/src/com/android/phone/BluetoothHandsfree.java
++++ b/src/com/android/phone/BluetoothHandsfree.java
+@@ -328,10 +328,12 @@ public class BluetoothHandsfree {
+ 
+         // must be called with BluetoothHandsfree locked
+         void shutdown() {
+-            try {
+-                mIncomingServerSocket.close();
+-            } catch (IOException e) {
+-                Log.w(TAG, "Error when closing server socket");
++            if (mIncomingServerSocket != null) {
++                try {
++                    mIncomingServerSocket.close();
++                } catch (IOException e) {
++                    Log.w(TAG, "Error when closing server socket");
++                }
+             }
+             stopped = true;
+             interrupt();

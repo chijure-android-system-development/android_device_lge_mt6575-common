@@ -1,0 +1,47 @@
+Subject: [PATCH] hwcomposer: MT6575 private layer and list fields for vee4ss
+
+Under VEE4SS_MTK_HWC_ABI hwc_layer_t grows to the 132-byte stock layout
+and hwc_layer_list_t gets the 16-byte header the vendor HWC expects.
+
+---
+diff --git a/include/hardware/hwcomposer.h b/include/hardware/hwcomposer.h
+index da063bd..efc98cf 100644
+--- a/include/hardware/hwcomposer.h
++++ b/include/hardware/hwcomposer.h
+@@ -168,6 +168,21 @@ typedef struct hwc_layer {
+             hwc_region_t visibleRegionScreen;
+         };
+     };
++#ifdef VEE4SS_MTK_HWC_ABI
++    /* Private MT6575 fields recovered from LG's stock SurfaceFlinger ABI. */
++    void* mtkBuffer;              /* 64: GraphicBuffer* */
++    uint32_t mtkFlags;            /* 68 */
++    uint32_t mtkMva;              /* 72 */
++    uint32_t mtkIdentity;         /* 76 */
++    uint32_t mtkReserved80;       /* 80 */
++    uint8_t mtkReserved84[3];
++    uint8_t mtkAlpha;             /* 87 */
++    float mtkTransform[9];        /* 88..123, column-major */
++    uint8_t mtkReserved124[5];
++    uint8_t mtkSecure;            /* 129 */
++    uint8_t mtkProtected;         /* 130 */
++    uint8_t mtkReserved131;
++#endif
+ } hwc_layer_t;
+ 
+ 
+@@ -189,6 +204,14 @@ enum {
+ typedef struct hwc_layer_list {
+     uint32_t flags;
+     size_t numHwLayers;
++#ifdef VEE4SS_MTK_HWC_ABI
++    /* Stock MT6575 places private presentation flags at offset 8. */
++    uint32_t mtkFlags;
++    uint8_t mtkDebugRegion;
++    uint8_t mtkDebugDDMS;
++    uint8_t mtkOrientation;
++    uint8_t mtkReserved15;
++#endif
+     hwc_layer_t hwLayers[0];
+ } hwc_layer_list_t;
+ 

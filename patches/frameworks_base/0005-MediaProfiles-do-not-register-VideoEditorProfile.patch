@@ -1,0 +1,29 @@
+Subject: [PATCH] MediaProfiles: do not register the VideoEditorProfile natives
+
+Carried over from the Huawei Y210 work, where FindClass failed for it
+and the non-zero return aborted zygote. Check Movie Studio on vee4ss.
+
+---
+diff --git a/media/jni/android_media_MediaProfiles.cpp b/media/jni/android_media_MediaProfiles.cpp
+index 3fbb8ba09ba..832162c8dd9 100644
+--- a/media/jni/android_media_MediaProfiles.cpp
++++ b/media/jni/android_media_MediaProfiles.cpp
+@@ -434,11 +434,13 @@ int register_android_media_MediaProfiles(JNIEnv *env)
+                gMethodsForCameraProfileClass,
+                NELEM(gMethodsForCameraProfileClass));
+ 
+-    int ret5 = AndroidRuntime::registerNativeMethods(env,
+-               kVideoEditorProfileClassPathName,
+-               gMethodsForVideoEditorProfileClass,
+-               NELEM(gMethodsForVideoEditorProfileClass));
++    // VideoEditorProfile's native registration is skipped: FindClass fails
++    // for it on this build (VideoEditor isn't shipped as a product package
++    // here), and AndroidRuntime::startReg() aborts zygote on any non-zero
++    // return from this function, so a failing ret5 here is fatal to boot.
++    (void)kVideoEditorProfileClassPathName;
++    (void)gMethodsForVideoEditorProfileClass;
+ 
+     // Success if all return values from above are 0
+-    return (ret1 || ret2 || ret3 || ret4 || ret5);
++    return (ret1 || ret2 || ret3 || ret4);
+ }

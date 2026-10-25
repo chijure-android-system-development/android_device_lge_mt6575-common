@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<StorageList xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Almacenamiento interno emulado via sdcard FUSE daemon (monta en /storage/sdcard0) -->
+    <storage android:mountPoint="/storage/sdcard0"
+             android:storageDescription="@string/storage_internal"
+             android:emulated="true"
+             android:mtpReserve="100"
+             android:primary="true" />
+
+    <!-- MicroSD externa — montada por vold en /storage/sdcard1 -->
+    <storage android:mountPoint="/storage/sdcard1"
+             android:storageDescription="@string/storage_sd_card"
+             android:removable="true" />
+</StorageList>

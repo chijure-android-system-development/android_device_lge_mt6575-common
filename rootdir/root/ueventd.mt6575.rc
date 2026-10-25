@@ -1,0 +1,80 @@
+# ueventd.mt6575.rc — LG L4 II / L5 II (MT6575)
+
+/dev/binder               0666   root       root
+/dev/pvrsrvkm             0666   root       root
+/dev/mtkfb_vsync          0660   system     graphics
+/dev/ashmem               0666   root       root
+/dev/pmem                 0666   root       root
+/dev/pmem_adsp            0660   system     audio
+
+# Particiones MTK (virtual block devices del driver eMMC)
+/dev/bootimg              0640   root       root
+/dev/recovery             0640   root       root
+/dev/nvram                0660   root       nvram
+/dev/sec_ro               0440   root       root
+/dev/logo                 0660   root       root
+/dev/uboot                0440   root       root
+
+# USB
+/dev/ttyGS0               0660   root       usb
+/dev/ttyMT0               0660   root       root
+/dev/ttyMT1               0660   root       root
+/dev/ttyMT2               0660   system     system
+
+# Camara / MHAL / MDP
+/dev/kd_camera_hw         0660   system     camera
+/dev/FM50AF               0660   system     camera
+/dev/kd_camera_flashlight 0660   system     camera
+/dev/camera-resmgr        0660   system     camera
+/dev/camera-sysram        0660   system     camera
+/dev/camera-isp           0660   system     camera
+/dev/camera-eis           0660   system     camera
+/dev/camera-fdvt          0660   system     camera
+/dev/mt-mdp               0660   system     camera
+/dev/mtk_jpeg             0444   system     camera
+/dev/M4U_device           0660   system     camera
+
+# Audio
+/dev/eac                  0660   system     audio
+/dev/hem                  0660   system     audio
+/dev/mt6575-audio         0660   system     audio
+/dev/Accdet_microphone    0660   system     audio
+
+# Sensores y periféricos
+/dev/mtk_kpd              0660   root       system
+/dev/akm8975_aot          0660   system     system
+/dev/ALPS_IO              0660   system     system
+/dev/bma150               0660   system     system
+/dev/lightsensor          0660   system     system
+/dev/touch                0660   root       root
+# MTK ALPS sensor hub — usada por sensors.mt6575.so para accel/mag/orient/prox
+/dev/hwmsensor            0660   system     system
+/dev/gsensor              0660   system     system
+/dev/msensor              0660   system     system
+/dev/als_ps               0660   system     system
+
+# Modem CCCI tty channels — gsm0710muxd opens ttyC0 after CCCI handshake
+/dev/ttyC0                0660   radio      radio
+/dev/ttyC1                0660   radio      radio
+/dev/ttyC2                0660   radio      radio
+
+# Modem
+/dev/ccci_mdx_sta         0660   radio      radio
+/dev/ccci0                0660   radio      radio
+/dev/ccci_fs              0660   radio      radio
+/dev/ccci_pcm             0660   radio      radio
+/dev/ccci_udc             0660   radio      radio
+
+# GPS
+/dev/gps                  0660   gps        gps
+/dev/stpgps               0660   gps        gps
+
+# devinfo — leído por libmtk_devinfo.so para obtener WiFi MAC / BT addr
+/dev/devinfo              0660   system     system
+
+# BT / WiFi (MT6620 combo chip)
+/dev/stpbt                0660   bluetooth  bluetooth
+/dev/stpwmt               0660   system     system
+/dev/wmtWifi              0660   system     system
+/dev/wmtdetect            0660   system     system
+/dev/wmt_dbg              0660   system     system

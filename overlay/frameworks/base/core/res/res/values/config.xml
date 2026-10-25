@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LG L4 II (320x480) y L5 II (480x800) -->
+    <integer name="config_longAnimTime">400</integer>
+    <integer name="config_shortAnimTime">200</integer>
+
+    <!-- Almacenamiento interno vía datamedia -->
+    <bool name="config_batterySdCardAccessibility">false</bool>
+
+    <!-- WiFi: el driver MTK necesita scan activo para asociarse -->
+    <bool name="config_wifi_background_scan_support">false</bool>
+    <integer name="config_wifi_framework_scan_interval">15000</integer>
+</resources>

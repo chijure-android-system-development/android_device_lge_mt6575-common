@@ -1,0 +1,148 @@
+Subject: [PATCH] Bluetooth: bound MAS/OPP/PBAP accept-thread shutdown
+
+Under BlueAngel accept() fails instead of returning on close; the accept
+threads now stop on IOException and joins are bounded to 1 s, so turning
+Bluetooth off no longer hangs.
+
+---
+diff --git a/src/com/android/bluetooth/map/BluetoothMasService.java b/src/com/android/bluetooth/map/BluetoothMasService.java
+index 863e0567..788bf294 100644
+--- a/src/com/android/bluetooth/map/BluetoothMasService.java
++++ b/src/com/android/bluetooth/map/BluetoothMasService.java
+@@ -74,6 +74,8 @@ public class BluetoothMasService extends Service {
+     public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+     public static final boolean VERBOSE = Log.isLoggable(TAG, Log.VERBOSE);
+ 
++    private static final long ACCEPT_THREAD_JOIN_TIMEOUT_MS = 1000;
++
+     /**
+      * Intent indicating incoming connection request which is sent to
+      * BluetoothMasActivity
+@@ -725,7 +727,10 @@ public class BluetoothMasService extends Service {
+             if (mAcceptThread != null) {
+                 try {
+                     mAcceptThread.shutdown();
+-                    mAcceptThread.join();
++                    mAcceptThread.join(ACCEPT_THREAD_JOIN_TIMEOUT_MS);
++                    if (mAcceptThread.isAlive()) {
++                        Log.w(TAG, "mAcceptThread still running after close timeout");
++                    }
+                 } catch (InterruptedException ex) {
+                     Log.w(TAG, "mAcceptThread  close error" + ex);
+                 } finally {
+@@ -875,8 +880,8 @@ public class BluetoothMasService extends Service {
+                         if (stopped) {
+                             break;
+                         }
+-                        if (VERBOSE)
+-                            Log.v(TAG, "Accept exception: " + ex.toString());
++                        Log.e(TAG, "Accept exception: " + ex.toString());
++                        break;
+                     }
+                 }
+             }
+@@ -890,7 +895,7 @@ public class BluetoothMasService extends Service {
+                         mServerSocket.close();
+                         mServerSocket = null;
+                     } catch (IOException e) {
+-                        Log.e(TAG, "Failed to close socket", e);
++                        Log.w(TAG, "Failed to close socket: " + e);
+                     }
+                 }
+             }
+diff --git a/src/com/android/bluetooth/opp/BluetoothOppRfcommListener.java b/src/com/android/bluetooth/opp/BluetoothOppRfcommListener.java
+index 9d9fa18b..5df4f978 100644
+--- a/src/com/android/bluetooth/opp/BluetoothOppRfcommListener.java
++++ b/src/com/android/bluetooth/opp/BluetoothOppRfcommListener.java
+@@ -63,6 +63,8 @@ public class BluetoothOppRfcommListener {
+ 
+     private static final int DEFAULT_OPP_CHANNEL = 12;
+ 
++    private static final long ACCEPT_THREAD_JOIN_TIMEOUT_MS = 1000;
++
+     private final int mBtOppRfcommChannel;
+ 
+     private final BluetoothAdapter mAdapter;
+@@ -163,6 +165,8 @@ public class BluetoothOppRfcommListener {
+                                 msg.sendToTarget();
+                             } catch (IOException e) {
+                                 Log.e(TAG, "Error accept connection " + e);
++                                mInterrupted = true;
++                                break;
+                             }
+                         }
+                         Log.i(TAG, "BluetoothSocket listen thread finished");
+@@ -198,18 +202,22 @@ public class BluetoothOppRfcommListener {
+                     try {
+                         mBtServerSocket.close();
+                     } catch (IOException e) {
+-                        Log.e(TAG, "Error close mBtServerSocket");
++                        Log.w(TAG, "Error close mBtServerSocket: " + e);
+                     }
+                 }
+             }
+             try {
+                 mSocketAcceptThread.interrupt();
+                 if (V) Log.v(TAG, "waiting for thread to terminate");
+-                mSocketAcceptThread.join();
+-                mSocketAcceptThread = null;
+-                mCallback = null;
++                mSocketAcceptThread.join(ACCEPT_THREAD_JOIN_TIMEOUT_MS);
++                if (mSocketAcceptThread.isAlive()) {
++                    Log.w(TAG, "Accept Thread still running after stop timeout");
++                }
+             } catch (InterruptedException e) {
+                 if (V) Log.v(TAG, "Interrupted waiting for Accept Thread to join");
++            } finally {
++                mSocketAcceptThread = null;
++                mCallback = null;
+             }
+         }
+     }
+diff --git a/src/com/android/bluetooth/pbap/BluetoothPbapService.java b/src/com/android/bluetooth/pbap/BluetoothPbapService.java
+index e7654a31..0c12c14b 100644
+--- a/src/com/android/bluetooth/pbap/BluetoothPbapService.java
++++ b/src/com/android/bluetooth/pbap/BluetoothPbapService.java
+@@ -76,6 +76,8 @@ public class BluetoothPbapService extends Service {
+ 
+     public static final boolean VERBOSE = false;
+ 
++    private static final long ACCEPT_THREAD_JOIN_TIMEOUT_MS = 1000;
++
+     /**
+      * Intent indicating incoming obex authentication request which is from
+      * PCE(Carkit)
+@@ -390,16 +392,20 @@ public class BluetoothPbapService extends Service {
+         try {
+             closeSocket(true, true);
+         } catch (IOException ex) {
+-            Log.e(TAG, "CloseSocket error: " + ex);
++            Log.w(TAG, "CloseSocket error: " + ex);
+         }
+ 
+         if (mAcceptThread != null) {
+             try {
+                 mAcceptThread.shutdown();
+-                mAcceptThread.join();
+-                mAcceptThread = null;
++                mAcceptThread.join(ACCEPT_THREAD_JOIN_TIMEOUT_MS);
++                if (mAcceptThread.isAlive()) {
++                    Log.w(TAG, "mAcceptThread still running after close timeout");
++                }
+             } catch (InterruptedException ex) {
+                 Log.w(TAG, "mAcceptThread close error" + ex);
++            } finally {
++                mAcceptThread = null;
+             }
+         }
+         mServerSocket = null;
+@@ -563,7 +569,8 @@ public class BluetoothPbapService extends Service {
+                     if (stopped) {
+                         break;
+                     }
+-                    if (VERBOSE) Log.v(TAG, "Accept exception: " + ex.toString());
++                    Log.e(TAG, "Accept exception: " + ex.toString());
++                    break;
+                 }
+             }
+         }

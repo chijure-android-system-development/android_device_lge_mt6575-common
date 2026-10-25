@@ -1,0 +1,15 @@
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE_TAGS    := optional
+LOCAL_MODULE         := lights.mt6575
+LOCAL_SRC_FILES      := lights.c
+LOCAL_SHARED_LIBRARIES := liblog libcutils
+LOCAL_MODULE_PATH    := $(TARGET_OUT_SHARED_LIBRARIES)/hw
+
+ifeq ($(BOARD_LP5521_HAS_CURRENT_INDEX),true)
+LOCAL_CFLAGS += -DLP5521_HAS_CURRENT_INDEX
+endif
+
+include $(BUILD_SHARED_LIBRARY)

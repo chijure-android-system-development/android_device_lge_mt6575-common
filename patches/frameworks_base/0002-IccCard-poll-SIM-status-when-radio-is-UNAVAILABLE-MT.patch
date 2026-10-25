@@ -1,0 +1,84 @@
+From c7841a2a200a234b65f47e034688227505195c39 Mon Sep 17 00:00:00 2001
+From: Juan Manuel Reategui Solis <reateguisolisjm@gmail.com>
+Date: Tue, 30 Jun 2026 17:36:03 -0500
+Subject: [PATCH 2/3] IccCard: poll SIM status when radio is UNAVAILABLE (MTK
+ PIN fix)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+MTK modems keep radioState=RADIO_UNAVAILABLE while a PIN-locked SIM waits
+for AT+CPIN.  Because IccCard only calls getIccCardStatus() on EVENT_RADIO_ON,
+and EVENT_RADIO_ON never fires until the PIN is entered, the keyguard never
+shows the SIM PIN prompt — a circular dependency.
+
+Fix: probe getIccCardStatus() immediately in EVENT_RADIO_OFF_OR_NOT_AVAILABLE
+as well.  On RADIO_NOT_AVAILABLE errors (modem not yet reachable), schedule a
+3-second retry via EVENT_POLL_SIM_STATUS_RETRY until the RIL responds with a
+valid card status.  If the modem allows RIL_REQUEST_GET_SIM_STATUS at
+RADIO_UNAVAILABLE (as AOSP requires), the framework will see PIN_REQUIRED and
+unblock the keyguard before EVENT_RADIO_ON ever arrives.
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Change-Id: Ie2ab5aed35ea6e20cad9f38126e84cd0119990bb
+---
+ .../android/internal/telephony/IccCard.java   | 25 +++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/telephony/java/com/android/internal/telephony/IccCard.java b/telephony/java/com/android/internal/telephony/IccCard.java
+index fa5e64d2735..cec112d1bba 100644
+--- a/telephony/java/com/android/internal/telephony/IccCard.java
++++ b/telephony/java/com/android/internal/telephony/IccCard.java
+@@ -124,6 +124,7 @@ public class IccCard {
+     private static final int EVENT_CARD_ADDED = 14;
+     protected static final int EVENT_CDMA_SUBSCRIPTION_SOURCE_CHANGED = 15;
+     protected static final int EVENT_RADIO_ON = 16;
++    private static final int EVENT_POLL_SIM_STATUS_RETRY = 17;
+ 
+     /*
+       UNKNOWN is a transient state, for example, after uesr inputs ICC pin under
+@@ -500,6 +501,17 @@ public class IccCard {
+             Log.e(mLogTag,"Error getting ICC status. "
+                     + "RIL_REQUEST_GET_ICC_STATUS should "
+                     + "never return an error", ar.exception);
++            // MTK: retry if RADIO_NOT_AVAILABLE and we have not yet got a valid
++            // card status.  The modem holds radioState=UNAVAILABLE until the SIM
++            // PIN is supplied; polling lets us detect PIN_REQUIRED and unblock the
++            // keyguard even before EVENT_RADIO_ON can fire.
++            if (ar.exception instanceof CommandException
++                    && ((CommandException) ar.exception).getCommandError()
++                            == CommandException.Error.RADIO_NOT_AVAILABLE
++                    && mIccCardStatus == null) {
++                mHandler.sendMessageDelayed(
++                        mHandler.obtainMessage(EVENT_POLL_SIM_STATUS_RETRY), 3000);
++            }
+             return;
+         }
+         handleIccCardStatus((IccCardStatus) ar.result);
+@@ -697,6 +709,12 @@ public class IccCard {
+                     mState = null;
+                     updateStateProperty();
+                     broadcastIccStateChangedIntent(INTENT_VALUE_ICC_NOT_READY, null);
++                    // MTK modems keep radioState=UNAVAILABLE while a PIN-locked SIM
++                    // waits for AT+CPIN.  EVENT_RADIO_ON therefore never fires and
++                    // the keyguard never shows the PIN prompt.  Probe SIM status now;
++                    // getIccCardStatusDone will retry on RADIO_NOT_AVAILABLE so the
++                    // keyguard sees PIN_REQUIRED as soon as the RIL becomes reachable.
++                    mPhone.mCM.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE));
+                     break;
+                 case EVENT_RADIO_ON:
+                     if (!is3gpp) {
+@@ -799,6 +817,13 @@ public class IccCard {
+                     Log.d(mLogTag, "Received Event EVENT_ICC_STATUS_CHANGED");
+                     mPhone.mCM.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE));
+                     break;
++                case EVENT_POLL_SIM_STATUS_RETRY:
++                    // Retry poll started in getIccCardStatusDone when the MTK modem
++                    // returns RADIO_NOT_AVAILABLE with a PIN-locked SIM.
++                    if (mIccCardStatus == null) {
++                        mPhone.mCM.getIccCardStatus(obtainMessage(EVENT_GET_ICC_STATUS_DONE));
++                    }
++                    break;
+                 case EVENT_CARD_REMOVED:
+                     onIccSwap(false);
+                     break;
