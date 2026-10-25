@@ -22,6 +22,7 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/root/ueventd.mt6575.rc:root/ueventd.mt6575.rc \
     system/core/rootdir/init.usb.rc:root/init.usb.rc \
     system/core/rootdir/init.trace.rc:root/init.trace.rc \
+    $(COMMON_PATH)/rootdir/system/etc/init.d/05serialno:system/etc/init.d/05serialno \
     $(COMMON_PATH)/rootdir/system/etc/init.d/10mtk-nodes:system/etc/init.d/10mtk-nodes \
     $(COMMON_PATH)/rootdir/system/etc/init.d/20sensors:system/etc/init.d/20sensors \
     $(COMMON_PATH)/rootdir/system/etc/vold.fstab:system/etc/vold.fstab \

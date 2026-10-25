@@ -12,6 +12,14 @@
  * So the decoders are also published as "OMX.google.MTK.VIDEO.DECODER.*"
  * (the names media_codecs.xml uses); those still decode in hardware but
  * get ordinary output buffers. Everything else passes through.
+ *
+ * The AVC decoder also returns every frame with timestamp 0; MediaTek's
+ * OMXCodec puts the input timestamps back, CM's does not. AwesomePlayer
+ * then took each frame for seconds late, kept skipping ahead and the video
+ * stood still. So the wrapper remembers the timestamps of the frames that
+ * go in and gives each frame that comes out without one the earliest still
+ * pending: the decoder outputs in presentation order, one frame per input
+ * frame. A flush (seek) drops the pending ones.
  */
 
 #define LOG_TAG "mt6575-omx"
@@ -19,6 +27,10 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <utils/KeyedVector.h>
+#include <utils/SortedVector.h>
+#include <utils/threads.h>
 
 #include <cutils/log.h>
 #include <media/hardware/OMXPluginBase.h>
@@ -45,6 +57,87 @@ static const char *stockName(const char *name, char *buf, size_t size)
     return isVideoDecoder(buf) ? buf : name;
 }
 
+static const OMX_U32 kInputPort = 0;
+
+/* Stands between an aliased decoder and OMXCodec; the decoder gets it as
+ * its app data. */
+struct DecoderHooks {
+    OMX_CALLBACKTYPE callbacks;     /* the ones the decoder calls */
+    const OMX_CALLBACKTYPE *client; /* OMXCodec's */
+    OMX_PTR clientData;
+    OMX_ERRORTYPE (*emptyThisBuffer)(OMX_HANDLETYPE component,
+            OMX_BUFFERHEADERTYPE *buffer);
+    Mutex lock;
+    SortedVector<OMX_TICKS> pending;    /* timestamps of decoding frames */
+};
+
+static Mutex sHooksLock;
+static KeyedVector<OMX_HANDLETYPE, DecoderHooks *> sHooks;
+
+static DecoderHooks *hooksOf(OMX_HANDLETYPE component)
+{
+    Mutex::Autolock lock(sHooksLock);
+    ssize_t i = sHooks.indexOfKey(component);
+
+    return i >= 0 ? sHooks.valueAt(i) : NULL;
+}
+
+static OMX_ERRORTYPE emptyThisBuffer(OMX_HANDLETYPE component,
+        OMX_BUFFERHEADERTYPE *buffer)
+{
+    DecoderHooks *hooks = hooksOf(component);
+
+    /* With wants-NAL-fragments the slices of a frame share its timestamp;
+     * the set keeps one. */
+    if (buffer->nFilledLen > 0 &&
+            !(buffer->nFlags & OMX_BUFFERFLAG_CODECCONFIG)) {
+        Mutex::Autolock lock(hooks->lock);
+        hooks->pending.add(buffer->nTimeStamp);
+    }
+    return hooks->emptyThisBuffer(component, buffer);
+}
+
+static OMX_ERRORTYPE onEvent(OMX_HANDLETYPE component, OMX_PTR appData,
+        OMX_EVENTTYPE event, OMX_U32 data1, OMX_U32 data2, OMX_PTR eventData)
+{
+    DecoderHooks *hooks = (DecoderHooks *)appData;
+
+    if (event == OMX_EventCmdComplete && data1 == OMX_CommandFlush &&
+            (data2 == kInputPort || data2 == OMX_ALL)) {
+        Mutex::Autolock lock(hooks->lock);
+        hooks->pending.clear();
+    }
+    return hooks->client->EventHandler(component, hooks->clientData, event,
+            data1, data2, eventData);
+}
+
+static OMX_ERRORTYPE onEmptyBufferDone(OMX_HANDLETYPE component,
+        OMX_PTR appData, OMX_BUFFERHEADERTYPE *buffer)
+{
+    DecoderHooks *hooks = (DecoderHooks *)appData;
+
+    return hooks->client->EmptyBufferDone(component, hooks->clientData,
+            buffer);
+}
+
+static OMX_ERRORTYPE onFillBufferDone(OMX_HANDLETYPE component,
+        OMX_PTR appData, OMX_BUFFERHEADERTYPE *buffer)
+{
+    DecoderHooks *hooks = (DecoderHooks *)appData;
+
+    if (buffer->nFilledLen > 0) {
+        Mutex::Autolock lock(hooks->lock);
+
+        if (!hooks->pending.isEmpty()) {
+            if (buffer->nTimeStamp == 0)
+                buffer->nTimeStamp = hooks->pending[0];
+            hooks->pending.removeAt(0);
+        }
+    }
+    return hooks->client->FillBufferDone(component, hooks->clientData,
+            buffer);
+}
+
 struct MT6575OMXPlugin : public OMXPluginBase {
     MT6575OMXPlugin(void *handle, OMXPluginBase *stock)
         : mHandle(handle), mStock(stock), mStockCount(0), mDecoders(0) {
@@ -68,15 +161,46 @@ struct MT6575OMXPlugin : public OMXPluginBase {
             const OMX_CALLBACKTYPE *callbacks, OMX_PTR appData,
             OMX_COMPONENTTYPE **component) {
         char buf[128];
+        const char *stock = stockName(name, buf, sizeof(buf));
+        DecoderHooks *hooks;
+        OMX_ERRORTYPE err;
 
-        return mStock->makeComponentInstance(
-                stockName(name, buf, sizeof(buf)), callbacks, appData,
+        if (stock != buf)
+            return mStock->makeComponentInstance(stock, callbacks, appData,
+                    component);
+
+        hooks = new DecoderHooks;
+        hooks->callbacks.EventHandler = onEvent;
+        hooks->callbacks.EmptyBufferDone = onEmptyBufferDone;
+        hooks->callbacks.FillBufferDone = onFillBufferDone;
+        hooks->client = callbacks;
+        hooks->clientData = appData;
+
+        err = mStock->makeComponentInstance(stock, &hooks->callbacks, hooks,
                 component);
+        if (err != OMX_ErrorNone) {
+            delete hooks;
+            return err;
+        }
+        hooks->emptyThisBuffer = (*component)->EmptyThisBuffer;
+        (*component)->EmptyThisBuffer = emptyThisBuffer;
+
+        Mutex::Autolock lock(sHooksLock);
+        sHooks.add(*component, hooks);
+        return err;
     }
 
     virtual OMX_ERRORTYPE destroyComponentInstance(
             OMX_COMPONENTTYPE *component) {
-        return mStock->destroyComponentInstance(component);
+        OMX_ERRORTYPE err = mStock->destroyComponentInstance(component);
+        Mutex::Autolock lock(sHooksLock);
+        ssize_t i = sHooks.indexOfKey(component);
+
+        if (i >= 0) {
+            delete sHooks.valueAt(i);
+            sHooks.removeItemsAt(i);
+        }
+        return err;
     }
 
     virtual OMX_ERRORTYPE enumerateComponents(OMX_STRING name, size_t size,

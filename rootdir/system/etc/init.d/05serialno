@@ -1,0 +1,17 @@
+#!/system/bin/sh
+
+# The LG bootloader passes no androidboot.serialno, so the USB gadget keeps
+# the kernel's 0123456789ABCDEF and every phone shows up in adb with the
+# same serial. Use the eMMC serial instead, which is unique per phone.
+# (ro.serialno cannot follow: init already set it, empty.)
+
+emmc=$(cat /sys/block/mmcblk0/device/serial 2>/dev/null)
+[ -n "$emmc" ] || exit 0
+
+usb=/sys/class/android_usb/android0
+echo "$(getprop ro.product.device)-${emmc#0x}" > $usb/iSerial
+# init already enumerated USB with the old serial; enumerate again.
+if [ "$(cat $usb/enable)" = 1 ]; then
+    echo 0 > $usb/enable
+    echo 1 > $usb/enable
+fi
