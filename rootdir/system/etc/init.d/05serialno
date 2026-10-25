@@ -10,8 +10,14 @@ emmc=$(cat /sys/block/mmcblk0/device/serial 2>/dev/null)
 
 usb=/sys/class/android_usb/android0
 echo "$(getprop ro.product.device)-${emmc#0x}" > $usb/iSerial
-# init already enumerated USB with the old serial; enumerate again.
+# init already enumerated USB with the old serial; enumerate again, and
+# restart adbd so the host does not keep the old session and show the
+# phone offline.
 if [ "$(cat $usb/enable)" = 1 ]; then
     echo 0 > $usb/enable
     echo 1 > $usb/enable
+    if [ "$(getprop init.svc.adbd)" = running ]; then
+        stop adbd
+        start adbd
+    fi
 fi
