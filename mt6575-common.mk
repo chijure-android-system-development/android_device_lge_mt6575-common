@@ -27,6 +27,16 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/system/etc/vold.fstab:system/etc/vold.fstab \
     $(COMMON_PATH)/rootdir/system/etc/audio_policy.conf:system/etc/audio_policy.conf
 
+# ---- GSM: APN list, SPN overrides and SIM Toolkit (as vendor/cm/config/gsm.mk) ----
+# The APN list is CM's plus Peru's carriers (Claro and Movistar from the
+# stock firmware, Entel), so it is copied here instead of gsm.mk's.
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/rootdir/system/etc/apns-conf.xml:system/etc/apns-conf.xml \
+    vendor/cm/prebuilt/common/etc/spn-conf.xml:system/etc/spn-conf.xml
+
+PRODUCT_PACKAGES += \
+    Stk
+
 # ---- Keymaps stock MTK/LG ----
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/system/usr/keylayout/mtk-kpd.kl:system/usr/keylayout/mtk-kpd.kl \
