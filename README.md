@@ -40,5 +40,5 @@ Kernel, particiones, recovery, densidad de pantalla y heap de dalvik,
 tiene su vendor. Los blobs quedan por equipo (`vendor/lge/<equipo>`): vienen
 de firmwares distintos (E44010a, E450g04a) y la mitad difiere.
 
-Por ahora solo el L5 II activa `MtkBt` y los codecs OMX de MTK; el vendor del
+Por ahora solo el L5 II activa los codecs OMX de MTK; el vendor del
 L4 II todavía no tiene esos blobs.

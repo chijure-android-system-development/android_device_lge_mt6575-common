@@ -115,7 +115,9 @@ PRODUCT_PACKAGES += \
     nvram_agent_binder \
     nvram_audio_init
 
-# LG framework classes MtkBt.apk links against; com.lge.compat.jar is on
-# the BOOTCLASSPATH in init.rc. MtkBt itself is enabled per device.
+# ---- Bluetooth: stock MtkBt.apk replaces Bluetooth.apk, as on stock ----
+# com.lge.compat holds the LG framework classes MtkBt links against; its
+# jar is on the BOOTCLASSPATH in init.rc.
 PRODUCT_PACKAGES += \
+    MtkBt \
     com.lge.compat

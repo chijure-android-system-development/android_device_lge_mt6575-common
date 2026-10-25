@@ -173,6 +173,11 @@ on post-fs-data
     mkdir /data/misc/bluetooth 0770 system system
     mkdir /data/@btmtk 0770 bluetooth bluetooth
     mkdir /data/@btmtk/profile 0770 bluetooth bluetooth
+    # mtkbt keeps its paired devices in the FILES devdb and le. Older builds
+    # created them as (empty) directories, which stops it from saving any
+    # link key; remove those after an update. rmdir leaves the files alone.
+    rmdir /data/@btmtk/devdb
+    rmdir /data/@btmtk/le
     mkdir /data/nvram 0777 root bluetooth
     mkdir /data/nvram/APCFG 0777 root bluetooth
     mkdir /data/nvram/APCFG/APRDEB 0777 root bluetooth

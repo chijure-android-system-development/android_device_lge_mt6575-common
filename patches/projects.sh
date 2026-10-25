@@ -6,7 +6,6 @@ frameworks_base:frameworks/base
 frameworks_native:frameworks/native
 hardware_libhardware:hardware/libhardware
 packages_apps_Phone:packages/apps/Phone
-packages_apps_Bluetooth:packages/apps/Bluetooth
 "
 
 # series_present REPO PATCH... : true if the working tree of REPO already
