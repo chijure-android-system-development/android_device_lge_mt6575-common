@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.android.fmradio">
+
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="16" />
+
+    <!-- Mapped to the media group, which owns /dev/fm, by
+         /system/etc/permissions/com.android.fmradio.xml. -->
+    <permission
+        android:name="com.android.fmradio.permission.FM_DEVICE"
+        android:protectionLevel="signatureOrSystem" />
+
+    <uses-permission android:name="com.android.fmradio.permission.FM_DEVICE" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <application
+        android:icon="@drawable/ic_launcher_fmradio"
+        android:label="@string/app_name"
+        android:theme="@android:style/Theme.Holo">
+
+        <activity
+            android:name=".FmRadioActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".FmService"
+            android:exported="false" />
+    </application>
+</manifest>

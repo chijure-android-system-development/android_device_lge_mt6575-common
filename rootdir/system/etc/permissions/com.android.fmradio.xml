@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Access to /dev/fm (system:media 0660) for the FM radio app. The app
+     declares the permission as signatureOrSystem, so only it holds it. -->
+<permissions>
+    <permission name="com.android.fmradio.permission.FM_DEVICE">
+        <group gid="media" />
+    </permission>
+</permissions>

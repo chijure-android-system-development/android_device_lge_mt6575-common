@@ -1,0 +1,5 @@
+# libfmjni registers all of FMRadioNative's natives when it loads and fails
+# if any is missing, so keep the ones the app does not call too.
+-keep class com.mediatek.FMRadio.FMRadioNative {
+    native <methods>;
+}

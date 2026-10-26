@@ -126,6 +126,15 @@ PRODUCT_PACKAGES += \
     nvram_agent_binder \
     nvram_audio_init
 
+# ---- FM radio: the device tree's app on the stock MT6620 libraries ----
+# /dev/fm is created by init.d/10mtk-nodes; the permission file gives the
+# app the media group that owns it.
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/rootdir/system/etc/permissions/com.android.fmradio.xml:system/etc/permissions/com.android.fmradio.xml
+
+PRODUCT_PACKAGES += \
+    FmRadio
+
 # ---- Bluetooth: stock MtkBt.apk replaces Bluetooth.apk, as on stock ----
 # com.lge.compat holds the LG framework classes MtkBt links against; its
 # jar is on the BOOTCLASSPATH in init.rc.

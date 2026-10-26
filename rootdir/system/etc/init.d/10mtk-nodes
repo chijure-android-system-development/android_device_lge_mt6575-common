@@ -69,3 +69,10 @@ chmod 0666 /dev/devmap
 create_node /dev/Vcodec 160 0
 chown 1000.1013 /dev/Vcodec
 chmod 0660 /dev/Vcodec
+
+# MT6620 FM receiver (mtk_fm_drv), opened by libfmjni in the FM radio app
+# and by the audio HAL for the FM volume. The app gets the media group
+# through the permission in etc/permissions/com.android.fmradio.xml.
+create_node /dev/fm 193 0
+chown 1000.1013 /dev/fm
+chmod 0660 /dev/fm

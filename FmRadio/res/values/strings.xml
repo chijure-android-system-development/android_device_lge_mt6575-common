@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FM Radio</string>
+    <string name="power_on">Turn on</string>
+    <string name="power_off">Turn off</string>
+    <string name="speaker">Speaker</string>
+    <string name="scan">Scan</string>
+    <string name="add_station">Save station</string>
+    <string name="remove_station">Remove station</string>
+    <string name="seek_down">&lt;&lt;</string>
+    <string name="step_down">&#x2212;</string>
+    <string name="step_up">+</string>
+    <string name="seek_up">&gt;&gt;</string>
+    <string name="searching">Searching…</string>
+    <string name="plug_headset">Plug in wired headphones: they are the antenna.</string>
+    <string name="power_on_failed">Could not turn on the FM radio.</string>
+    <string name="scan_found">%d stations found</string>
+</resources>
