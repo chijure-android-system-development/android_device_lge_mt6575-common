@@ -78,8 +78,13 @@ def FullOTA_InstallEnd(info):
     common.CheckSize(data, "boot.img", info.info_dict)
     common.ZipWriteStr(info.output_zip, "boot-mtk.img", data)
 
+    # The dd goes through the block device's page cache; sync before the
+    # script ends, or a reboot that does not sync (holding the power key
+    # after flashing) leaves the new header and kernel on top of the old
+    # ramdisk, and the phone does not boot.
     info.script.AppendExtra('package_extract_file("boot-mtk.img", "/tmp/boot-mtk.img");')
     info.script.AppendExtra(
         'run_program("/sbin/sh", "-c",'
-        ' "dd if=/tmp/boot-mtk.img of=/dev/block/mmcblk0 bs=512 seek=36864");')
+        ' "dd if=/tmp/boot-mtk.img of=/dev/block/mmcblk0 bs=512 seek=36864'
+        ' && sync");')
     info.script.AppendExtra('delete("/tmp/boot-mtk.img");')
