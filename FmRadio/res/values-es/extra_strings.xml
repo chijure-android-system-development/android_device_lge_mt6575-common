@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="power_on_failed">No se pudo encender la radio FM.</string>
+    <string name="power_off">Apagar</string>
+    <string name="scan_found">%d emisoras encontradas</string>
+</resources>

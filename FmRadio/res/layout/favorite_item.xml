@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="88dp"
+    android:background="@drawable/card_background"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <ImageView
+        android:id="@+id/playing"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:alpha="0.54"
+        android:src="@drawable/fm_playing_state" />
+
+    <TextView
+        android:id="@+id/station_freq"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif"
+        android:textColor="@color/fm_text_dark"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/station_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:textColor="@color/fm_text_dark_secondary"
+        android:textSize="14sp" />
+</LinearLayout>

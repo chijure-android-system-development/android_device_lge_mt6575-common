@@ -439,16 +439,17 @@ public class FmService extends Service {
                 new Intent(this, FmRadioActivity.class), 0);
         PendingIntent off = PendingIntent.getService(this, 0,
                 new Intent(this, FmService.class).setAction(ACTION_POWER_OFF), 0);
-        String title = FmRadioActivity.formatFrequency(mFrequency);
+        String title = FmRadioActivity.formatFrequency(mFrequency) + " MHz";
         String text = mStationName.length() > 0 ? mStationName
                 : getString(R.string.app_name);
         return new Notification.Builder(this)
-                .setSmallIcon(R.drawable.ic_stat_fm)
+                .setSmallIcon(R.drawable.fm_title_icon)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setContentIntent(content)
                 .setOngoing(true)
-                .addAction(R.drawable.ic_stat_power, getString(R.string.power_off), off)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                        getString(R.string.power_off), off)
                 .build();
     }
 }

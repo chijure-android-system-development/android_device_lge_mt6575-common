@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- JB stand-in for AOSP's ripple: a translucent circle while pressed. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="@color/fm_touch" />
+        </shape>
+    </item>
+    <item android:drawable="@android:color/transparent" />
+</selector>

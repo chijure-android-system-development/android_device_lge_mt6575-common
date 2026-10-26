@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"FM রেডিও"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"স্পিকার"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"ইয়ারফোন"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"পূর্ববর্তী স্টেশন"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"ফ্রিকোয়েন্সী কমান"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"ফ্রিকোয়েন্সী বাড়ান"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"পরবর্তী স্টেশন"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"পছন্দসই-এ যোগ করুন"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"FM"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"FM রেডিও চালান বা বন্ধ করুন"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"রিফ্রেশ করুন"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"শোনা আরম্ভ করতে, হেডফোন লাগান (অ্যান্টেনা হিসাবে ব্যবহৃত হয়)৷"</string>
+    <string name="station_title" msgid="4027617747760605320">"রেডিও স্টেশনগুলি"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"স্টেশনগুলি খোঁজা হচ্ছে"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"কোনো স্টেশন খুঁজে পাওয়া যায়নি"</string>
+    <string name="favorites" msgid="2732520024474501799">"পছন্দগুলি"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"পছন্দসই সরান"</string>
+</resources>

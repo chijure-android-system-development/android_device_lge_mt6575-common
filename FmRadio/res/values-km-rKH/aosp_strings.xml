@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"វិទ្យុ FM"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"ឧបករណ៍បំពងសម្លេង"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"កាសស្តាប់"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"ស្ថានីយពីមុន"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"បន្ថយប្រេកង់"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"បង្កើនប្រេកង់"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"ស្ថានីយបន្ទាប់"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"បន្ថែមទៅការចូលចិត្ត"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"FM"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"លេង ឬបិទវិទ្យុ FM"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"ផ្ទុកឡើងវិញ"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"ដើម្បីចា់ប់ផ្តើមស្តាប់ ដោតកាសចូល (ប្រើជាអង់តែន)។"</string>
+    <string name="station_title" msgid="4027617747760605320">"ស្ថានីយវិទ្យុ"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"ចាប់យកស្ថានីយ៍"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"មិនមានស្ថានីយ៍ត្រូវបានរកឃើញទេ"</string>
+    <string name="favorites" msgid="2732520024474501799">"ការចូលចិត្ត"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"យកការចូលចិត្តចេញ"</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AOSP FM Radio's palette. -->
+<resources>
+    <color name="fm_header">#607D8B</color>
+    <color name="fm_header_dark">#455A64</color>
+    <color name="fm_header_text">#CFD8DC</color>
+    <color name="fm_touch">#33FFFFFF</color>
+    <color name="fm_card_touch">#1F000000</color>
+    <color name="fm_card_border">#1F000000</color>
+    <color name="fm_bottom">#FFFFFF</color>
+    <color name="fm_text_dark">#DE000000</color>
+    <color name="fm_text_dark_secondary">#8A000000</color>
+</resources>

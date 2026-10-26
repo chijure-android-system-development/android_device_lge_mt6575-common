@@ -1,0 +1,13 @@
+FmRadio — FM radio for the MT6575 LGs (LG L4 II, L5 II) on CyanogenMod.
+
+The icons (res/drawable-*/btn_fm_*, fb_red, fm_title_icon, fm_playing_state,
+ic_headest_null, ic_launcher_fmradio), the colors and layout design and the
+translated strings in res/values*/aosp_strings.xml come from AOSP's FM Radio
+app (packages/apps/FMRadio, Android 5.1):
+
+    Copyright (C) 2014 The Android Open Source Project
+    Licensed under the Apache License, Version 2.0
+
+Only the resources this app uses were kept, and only the mdpi/hdpi images
+these phones need. The code is new and talks to the stock MediaTek
+libfmjni.so through com.mediatek.FMRadio.FMRadioNative.

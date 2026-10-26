@@ -17,46 +17,57 @@
 package com.android.fmradio;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Main screen, with the layout and icons of AOSP's FM Radio app (Android
+ * 5.1, Apache 2.0) rebuilt with JB widgets: the frequency on a blue-grey
+ * header, prev/-/favorite/+/next, a floating play button, and the
+ * favorites as cards. The radio itself is FmService.
+ */
 public class FmRadioActivity extends Activity implements FmService.Listener {
     private FmService mService;
 
     private TextView mFrequencyView;
     private TextView mStationView;
-    private TextView mStatusView;
-    private Button mPowerButton;
-    private ToggleButton mSpeakerButton;
-    private Button mScanButton;
-    private Button mFavoriteButton;
-    private View[] mTuneButtons;
+    private ImageButton mPlayButton;
+    private ImageButton mSpeakerButton;
+    private ImageButton mFavoriteButton;
+    private View mNoHeadset;
+    private View[] mRadioButtons;
+    private ProgressDialog mScanDialog;
 
     private SharedPreferences mPrefs;
+    private final List<Float> mFavorites = new ArrayList<Float>();
     private final List<Float> mStations = new ArrayList<Float>();
-    private ArrayAdapter<String> mAdapter;
+    private FavoritesAdapter mAdapter;
 
     static String formatFrequency(float mhz) {
-        return String.format(Locale.US, "%.1f MHz", mhz);
+        return String.format(Locale.US, "%.1f", mhz);
     }
 
     @Override
@@ -66,52 +77,49 @@ public class FmRadioActivity extends Activity implements FmService.Listener {
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         mPrefs = getSharedPreferences("fmradio", MODE_PRIVATE);
 
-        mFrequencyView = (TextView) findViewById(R.id.frequency);
-        mStationView = (TextView) findViewById(R.id.station);
-        mStatusView = (TextView) findViewById(R.id.status);
-        mPowerButton = (Button) findViewById(R.id.power);
-        mSpeakerButton = (ToggleButton) findViewById(R.id.speaker);
-        mScanButton = (Button) findViewById(R.id.scan);
-        mFavoriteButton = (Button) findViewById(R.id.favorite);
-        mTuneButtons = new View[] {
-            findViewById(R.id.seek_down), findViewById(R.id.step_down),
-            findViewById(R.id.step_up), findViewById(R.id.seek_up),
+        mFrequencyView = (TextView) findViewById(R.id.station_value);
+        mStationView = (TextView) findViewById(R.id.station_name);
+        mPlayButton = (ImageButton) findViewById(R.id.play_button);
+        mSpeakerButton = (ImageButton) findViewById(R.id.button_speaker);
+        mFavoriteButton = (ImageButton) findViewById(R.id.button_add_to_favorite);
+        mNoHeadset = findViewById(R.id.no_headset);
+        mRadioButtons = new View[] {
+            findViewById(R.id.button_prevstation), findViewById(R.id.button_decrease),
+            findViewById(R.id.button_increase), findViewById(R.id.button_nextstation),
+            mSpeakerButton, findViewById(R.id.button_list),
         };
 
-        mPowerButton.setOnClickListener(new View.OnClickListener() {
+        mPlayButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mService == null) {
                     return;
                 }
                 if (mService.isPoweredOn()) {
                     mService.powerOff();
-                } else if (!mService.isAntennaPlugged()) {
-                    Toast.makeText(FmRadioActivity.this, R.string.plug_headset,
-                            Toast.LENGTH_LONG).show();
                 } else if (!mService.powerOn()) {
                     Toast.makeText(FmRadioActivity.this, R.string.power_on_failed,
                             Toast.LENGTH_LONG).show();
                 }
             }
         });
-        findViewById(R.id.seek_down).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_prevstation).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mService != null) mService.seek(false);
             }
         });
-        findViewById(R.id.seek_up).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_nextstation).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mService != null) mService.seek(true);
             }
         });
-        findViewById(R.id.step_down).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_decrease).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mService != null) {
                     mService.tune(mService.getFrequency() - FmService.STEP);
                 }
             }
         });
-        findViewById(R.id.step_up).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button_increase).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if (mService != null) {
                     mService.tune(mService.getFrequency() + FmService.STEP);
@@ -120,26 +128,7 @@ public class FmRadioActivity extends Activity implements FmService.Listener {
         });
         mSpeakerButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if (mService != null) mService.setSpeaker(mSpeakerButton.isChecked());
-            }
-        });
-        mScanButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (mService == null) {
-                    return;
-                }
-                mService.scan(new FmService.ScanCallback() {
-                    public void onScanFinished(float[] found) {
-                        mStations.clear();
-                        for (float f : found) {
-                            mStations.add(f);
-                        }
-                        saveStations();
-                        Toast.makeText(FmRadioActivity.this,
-                                getString(R.string.scan_found, found.length),
-                                Toast.LENGTH_SHORT).show();
-                    }
-                });
+                if (mService != null) mService.setSpeaker(!mService.isSpeaker());
             }
         });
         mFavoriteButton.setOnClickListener(new View.OnClickListener() {
@@ -148,25 +137,39 @@ public class FmRadioActivity extends Activity implements FmService.Listener {
                     return;
                 }
                 Float f = mService.getFrequency();
-                if (mStations.contains(f)) {
-                    mStations.remove(f);
+                if (mFavorites.contains(f)) {
+                    mFavorites.remove(f);
                 } else {
-                    mStations.add(f);
-                    Collections.sort(mStations);
+                    mFavorites.add(f);
+                    Collections.sort(mFavorites);
                 }
-                saveStations();
+                saveList("favorites", mFavorites);
+                onStateChanged();
+            }
+        });
+        findViewById(R.id.button_list).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                showStationList();
             }
         });
 
-        ListView list = (ListView) findViewById(R.id.stations);
-        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        list.setAdapter(mAdapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        GridView grid = (GridView) findViewById(R.id.favorites);
+        mAdapter = new FavoritesAdapter();
+        grid.setAdapter(mAdapter);
+        grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-                if (mService != null) mService.tune(mStations.get(pos));
+                tuneTo(mFavorites.get(pos));
             }
         });
-        loadStations();
+        grid.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+                confirmRemoveFavorite(mFavorites.get(pos));
+                return true;
+            }
+        });
+
+        loadList("favorites", mFavorites);
+        loadList("stations", mStations);
 
         Intent intent = new Intent(this, FmService.class);
         startService(intent);
@@ -200,60 +203,155 @@ public class FmRadioActivity extends Activity implements FmService.Listener {
         }
         boolean on = mService.isPoweredOn();
         boolean busy = mService.isBusy();
+        float freq = mService.getFrequency();
 
-        mFrequencyView.setText(formatFrequency(mService.getFrequency()));
-        mStationView.setText(mService.getStationName());
-        if (busy) {
-            mStatusView.setText(R.string.searching);
-        } else if (!on && !mService.isAntennaPlugged()) {
-            mStatusView.setText(R.string.plug_headset);
-        } else {
-            mStatusView.setText("");
+        mNoHeadset.setVisibility(!on && !mService.isAntennaPlugged()
+                ? View.VISIBLE : View.GONE);
+        mFrequencyView.setText(formatFrequency(freq));
+        mStationView.setText(busy ? getString(R.string.station_searching_tips)
+                : mService.getStationName());
+        mPlayButton.setImageResource(on ? R.drawable.btn_fm_stop_selector
+                : R.drawable.btn_fm_start_selector);
+        mSpeakerButton.setImageResource(mService.isSpeaker()
+                ? R.drawable.btn_fm_speaker_selector : R.drawable.btn_fm_headset_selector);
+        mSpeakerButton.setContentDescription(getString(mService.isSpeaker()
+                ? R.string.optmenu_earphone : R.string.optmenu_speaker));
+        mFavoriteButton.setImageResource(mFavorites.contains(freq)
+                ? R.drawable.btn_fm_favorite_on_selector
+                : R.drawable.btn_fm_favorite_off_selector);
+        for (View b : mRadioButtons) {
+            b.setEnabled(on && !busy);
         }
-        mPowerButton.setText(on ? R.string.power_off : R.string.power_on);
-        mSpeakerButton.setChecked(mService.isSpeaker());
-        mSpeakerButton.setEnabled(on && !busy);
-        mScanButton.setEnabled(on && !busy);
-        for (View b : mTuneButtons) {
-            b.setEnabled(!busy);
-        }
-        mFavoriteButton.setText(mStations.contains(mService.getFrequency())
-                ? R.string.remove_station : R.string.add_station);
+        mPlayButton.setEnabled(!busy);
+        mAdapter.notifyDataSetChanged();
     }
 
-    private void loadStations() {
-        mStations.clear();
-        String saved = mPrefs.getString("stations", "");
-        for (String s : saved.split(",")) {
+    private void tuneTo(float freq) {
+        if (mService != null) {
+            mService.tune(freq);
+        }
+    }
+
+    private void confirmRemoveFavorite(final float freq) {
+        new AlertDialog.Builder(this)
+                .setTitle(formatFrequency(freq))
+                .setItems(new CharSequence[] { getString(R.string.remove_favorite) },
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface d, int which) {
+                                mFavorites.remove(Float.valueOf(freq));
+                                saveList("favorites", mFavorites);
+                                onStateChanged();
+                            }
+                        })
+                .show();
+    }
+
+    private void showStationList() {
+        if (mStations.isEmpty()) {
+            scanStations();
+            return;
+        }
+        CharSequence[] items = new CharSequence[mStations.size()];
+        for (int i = 0; i < items.length; i++) {
+            items[i] = formatFrequency(mStations.get(i)) + " MHz";
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.station_title)
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface d, int which) {
+                        tuneTo(mStations.get(which));
+                    }
+                })
+                .setPositiveButton(R.string.fm_station_list_menu_refresh,
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface d, int which) {
+                                scanStations();
+                            }
+                        })
+                .show();
+    }
+
+    private void scanStations() {
+        if (mService == null || !mService.isPoweredOn()) {
+            return;
+        }
+        mScanDialog = ProgressDialog.show(this, getString(R.string.station_title),
+                getString(R.string.station_searching_tips), true, false);
+        mService.scan(new FmService.ScanCallback() {
+            public void onScanFinished(float[] found) {
+                if (mScanDialog != null) {
+                    mScanDialog.dismiss();
+                    mScanDialog = null;
+                }
+                mStations.clear();
+                for (float f : found) {
+                    mStations.add(f);
+                }
+                saveList("stations", mStations);
+                if (found.length == 0) {
+                    Toast.makeText(FmRadioActivity.this, R.string.station_empty_text,
+                            Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(FmRadioActivity.this,
+                            getString(R.string.scan_found, found.length),
+                            Toast.LENGTH_SHORT).show();
+                    showStationList();
+                }
+            }
+        });
+    }
+
+    private void loadList(String key, List<Float> list) {
+        list.clear();
+        for (String s : mPrefs.getString(key, "").split(",")) {
             if (s.length() > 0) {
                 try {
-                    mStations.add(Float.parseFloat(s));
+                    list.add(Float.parseFloat(s));
                 } catch (NumberFormatException e) {
                     // skip
                 }
             }
         }
-        refreshList();
     }
 
-    private void saveStations() {
+    private void saveList(String key, List<Float> list) {
         StringBuilder sb = new StringBuilder();
-        for (Float f : mStations) {
+        for (Float f : list) {
             if (sb.length() > 0) {
                 sb.append(',');
             }
             sb.append(f);
         }
-        mPrefs.edit().putString("stations", sb.toString()).apply();
-        refreshList();
-        onStateChanged();
+        mPrefs.edit().putString(key, sb.toString()).apply();
     }
 
-    private void refreshList() {
-        mAdapter.clear();
-        for (Float f : mStations) {
-            mAdapter.add(formatFrequency(f));
+    private class FavoritesAdapter extends BaseAdapter {
+        public int getCount() {
+            return mFavorites.size();
         }
-        mAdapter.notifyDataSetChanged();
+
+        public Object getItem(int pos) {
+            return mFavorites.get(pos);
+        }
+
+        public long getItemId(int pos) {
+            return pos;
+        }
+
+        public View getView(int pos, View view, ViewGroup parent) {
+            if (view == null) {
+                view = LayoutInflater.from(FmRadioActivity.this)
+                        .inflate(R.layout.favorite_item, parent, false);
+            }
+            float freq = mFavorites.get(pos);
+            boolean current = mService != null && mService.isPoweredOn()
+                    && mService.getFrequency() == freq;
+            ((TextView) view.findViewById(R.id.station_freq)).setText(formatFrequency(freq));
+            ((TextView) view.findViewById(R.id.station_name)).setText(
+                    current ? mService.getStationName() : "");
+            view.findViewById(R.id.playing).setVisibility(
+                    current ? View.VISIBLE : View.INVISIBLE);
+            return view;
+        }
     }
 }

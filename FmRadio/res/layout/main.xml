@@ -1,86 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- AOSP FM Radio's look (Apache 2.0), laid out with JB widgets. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/frequency"
+    <RelativeLayout
+        android:id="@+id/main_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="44sp"
-        android:textStyle="bold" />
+        android:layout_height="match_parent"
+        android:background="@color/fm_bottom">
 
-    <TextView
-        android:id="@+id/station"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textSize="20sp" />
+        <RelativeLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/fm_header"
+            android:paddingBottom="40dp">
 
-    <TextView
-        android:id="@+id/status"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+            <TextView
+                android:id="@+id/text_fm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:paddingLeft="16dp"
+                android:paddingTop="16dp"
+                android:fontFamily="sans-serif"
+                android:text="@string/fm_symbol"
+                android:textColor="@color/fm_header_text"
+                android:textSize="14sp" />
+
+            <ImageButton
+                android:id="@+id/button_speaker"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="4dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/circle_button"
+                android:contentDescription="@string/optmenu_speaker"
+                android:src="@drawable/btn_fm_headset_selector" />
+
+            <ImageButton
+                android:id="@+id/button_list"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_toLeftOf="@id/button_speaker"
+                android:background="@drawable/circle_button"
+                android:contentDescription="@string/station_title"
+                android:src="@drawable/btn_fm_list_selector" />
+
+            <TextView
+                android:id="@+id/station_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/text_fm"
+                android:paddingLeft="12dp"
+                android:alpha="0.87"
+                android:fontFamily="sans-serif-light"
+                android:includeFontPadding="false"
+                android:textColor="@android:color/white"
+                android:textSize="80sp" />
+
+            <TextView
+                android:id="@+id/station_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/station_value"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:alpha="0.87"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="22sp" />
+
+            <LinearLayout
+                android:id="@+id/buttons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/station_name"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton android:id="@+id/button_prevstation" style="@style/FmButton"
+                    android:contentDescription="@string/talk_prev_station"
+                    android:src="@drawable/btn_fm_previous" />
+                <ImageButton android:id="@+id/button_decrease" style="@style/FmButton"
+                    android:contentDescription="@string/talk_decrease"
+                    android:src="@drawable/btn_fm_decrease_selector" />
+                <ImageButton android:id="@+id/button_add_to_favorite" style="@style/FmButton"
+                    android:contentDescription="@string/talk_add_favorite"
+                    android:src="@drawable/btn_fm_favorite_off_selector" />
+                <ImageButton android:id="@+id/button_increase" style="@style/FmButton"
+                    android:contentDescription="@string/talk_increase"
+                    android:src="@drawable/btn_fm_increase_selector" />
+                <ImageButton android:id="@+id/button_nextstation" style="@style/FmButton"
+                    android:contentDescription="@string/talk_next_station"
+                    android:src="@drawable/btn_fm_next_selector" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <TextView
+            android:id="@+id/favorite_text"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_below="@id/header"
+            android:alpha="0.54"
+            android:fontFamily="sans-serif"
+            android:gravity="center_vertical"
+            android:paddingLeft="16dp"
+            android:text="@string/favorites"
+            android:textColor="@android:color/black"
+            android:textSize="14sp" />
+
+        <GridView
+            android:id="@+id/favorites"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/favorite_text"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:clipToPadding="false"
+            android:horizontalSpacing="8dp"
+            android:verticalSpacing="8dp"
+            android:numColumns="2"
+            android:stretchMode="columnWidth" />
+
+        <FrameLayout
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_alignBottom="@id/header"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="-32dp"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/fb_red">
+
+            <ImageButton
+                android:id="@+id/play_button"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:background="@drawable/circle_button"
+                android:contentDescription="@string/fm_turn_on"
+                android:src="@drawable/btn_fm_start_selector" />
+        </FrameLayout>
+    </RelativeLayout>
 
     <LinearLayout
+        android:id="@+id/no_headset"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:orientation="horizontal">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
 
-        <Button android:id="@+id/seek_down" style="@style/TuneButton" android:text="@string/seek_down" />
-        <Button android:id="@+id/step_down" style="@style/TuneButton" android:text="@string/step_down" />
-        <Button android:id="@+id/step_up" style="@style/TuneButton" android:text="@string/step_up" />
-        <Button android:id="@+id/seek_up" style="@style/TuneButton" android:text="@string/seek_up" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/power"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <ToggleButton
-            android:id="@+id/speaker"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:textOn="@string/speaker"
-            android:textOff="@string/speaker" />
-    </LinearLayout>
+            android:background="@color/fm_header"
+            android:gravity="center_horizontal|bottom">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_headest_null" />
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/scan"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:text="@string/scan" />
-
-        <Button
-            android:id="@+id/favorite"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:background="@color/fm_bottom"
+            android:gravity="center"
+            android:padding="32dp"
+            android:alpha="0.87"
+            android:fontFamily="sans-serif"
+            android:text="@string/fm_no_headset_text"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
     </LinearLayout>
-
-    <ListView
-        android:id="@+id/stations"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
-</LinearLayout>
+</FrameLayout>

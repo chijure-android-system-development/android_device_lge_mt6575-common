@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"FM радио"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"Звучник"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"Слушалице"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"Претходна станица"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"Нижа фреквенција"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"Виша фреквенција"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"Следећа станица"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"Додај у омиљене"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"FM"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"Пусти или заустави FM радио"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"Освежи"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"Да бисте почели да слушате, прикључите слушалице (користе се као антена)."</string>
+    <string name="station_title" msgid="4027617747760605320">"Радио станице"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"Траже се станице"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"Није пронађена ниједна станица"</string>
+    <string name="favorites" msgid="2732520024474501799">"Омиљене"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"Уклони омиљену"</string>
+</resources>

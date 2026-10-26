@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"FM irratia"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"Bozgorailua"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"Entzungailua"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"Aurreko irrati-katea"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"Txikitu irrati-maiztasuna"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"Handitu irrati-maiztasuna"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"Hurrengo irrati-katea"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"Gehitu gogokoetan"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"FM"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"Piztu edo itzali FM irratia"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"Freskatu"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"Entzuten hasteko, konektatu entzungailua (antena gisa funtzionatzen du)."</string>
+    <string name="station_title" msgid="4027617747760605320">"Irrati-kateak"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"Irrati-kateak eskuratzen"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"Ez da aurkitu irrati-katerik"</string>
+    <string name="favorites" msgid="2732520024474501799">"Gogokoak"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"Kendu gogokoa"</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"FM ರೇಡಿಯೊ"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"ಸ್ಪೀಕರ್‌"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"ಇಯರ್‌ಫೋನ್"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"ಹಿಂದಿನ ಸ್ಟೇಷನ್"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"ತರಂಗಾಂತರವನ್ನು ಕಡಿಮೆಗೊಳಿಸಿ"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"ತರಂಗಾಂತರವನ್ನು ಹೆಚ್ಚಿಸಿ"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"ಮುಂದಿನ ಸ್ಟೇಷನ್"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"ಮೆಚ್ಚಿನದಕ್ಕೆ ಸೇರಿಸಿ"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"FM"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"FM ರೇಡಿಯೊವನ್ನು ಪ್ಲೇ ಮಾಡಿ ಅಥವಾ ನಿಲ್ಲಿಸಿ"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"ರಿಫ್ರೆಶ್ ಮಾಡಿ"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"ಆಲಿಸಲು, ಹೆಡ್‌ಫೋನ್‌ಗಳನ್ನು ಪ್ಲಗ್ ಇನ್ ಮಾಡಿ (ಆಂಟೆನಾ ರೀತಿಯಲ್ಲಿ ಬಳಸಲಾಗುತ್ತದೆ)."</string>
+    <string name="station_title" msgid="4027617747760605320">"ರೇಡಿಯೊ ಸ್ಟೇಷನ್‌ಗಳು"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"ಸ್ಟೇಷನ್‌ಗಳನ್ನು ಪಡೆಯಲಾಗುತ್ತಿದೆ"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"ಯಾವುದೇ ಸ್ಟೇಷನ್‌ಗಳು ಪತ್ತೆಯಾಗಿಲ್ಲ"</string>
+    <string name="favorites" msgid="2732520024474501799">"ಮೆಚ್ಚಿನವುಗಳು"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"ಮೆಚ್ಚಿನದನ್ನು ತೆಗೆದುಹಾಕಿ"</string>
+</resources>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name" msgid="6295623783273502721">"ఎఫ్ఎమ్ రేడియో"</string>
+    <string name="optmenu_speaker" msgid="3726411287495057671">"స్పీకర్"</string>
+    <string name="optmenu_earphone" msgid="5400875884296655508">"ఇయర్‌ఫోన్"</string>
+    <string name="talk_prev_station" msgid="8940546148820098004">"మునుపటి స్టేషన్"</string>
+    <string name="talk_decrease" msgid="6796562419095928389">"పౌనఃపున్యాన్ని తగ్గించు"</string>
+    <string name="talk_increase" msgid="7207549524364881559">"పౌనఃపున్యాన్ని పెంచు"</string>
+    <string name="talk_next_station" msgid="2711772562090360378">"తదుపరి స్టేషన్"</string>
+    <string name="talk_add_favorite" msgid="1560744966239678417">"ఇష్టమైనదిగా జోడించు"</string>
+    <string name="fm_symbol" msgid="2254633383284842986">"ఎఫ్ఎమ్"</string>
+    <string name="fm_turn_on" msgid="407678074231499621">"ఎఫ్ఎమ్ రేడియో ప్లే చేయి/ఆపు"</string>
+    <string name="fm_station_list_menu_refresh" msgid="1351081387336325789">"రీఫ్రెష్ చేయి"</string>
+    <string name="fm_no_headset_text" msgid="6831656307562812248">"వినేందుకు హెడ్‌ఫోన్స్‌ను ప్లగ్ ఇన్ చేయండి (ఇది యాంటెన్నాగా ఉపయోగించబడుతుంది)."</string>
+    <string name="station_title" msgid="4027617747760605320">"రేడియో స్టేషన్‌లు"</string>
+    <string name="station_searching_tips" msgid="6970095710072278870">"స్టేషన్‌లను పొందుతోంది"</string>
+    <string name="station_empty_text" msgid="6847327406626186898">"స్టేషన్‌లు ఏవీ కనుగొనబడలేదు"</string>
+    <string name="favorites" msgid="2732520024474501799">"ఇష్టమైనవి"</string>
+    <string name="remove_favorite" msgid="3128670507986192468">"ఇష్టమైనది నుండి తీసివేయి"</string>
+</resources>

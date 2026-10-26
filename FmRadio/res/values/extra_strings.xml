@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Strings of this app that AOSP's FM Radio does not have. -->
+<resources>
+    <string name="power_on_failed">Could not turn on the FM radio.</string>
+    <string name="power_off">Turn off</string>
+    <string name="scan_found">%d stations found</string>
+</resources>

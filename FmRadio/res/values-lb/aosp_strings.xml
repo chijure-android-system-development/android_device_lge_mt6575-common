@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 The Android Open Source Project
+     Licensed under the Apache License, Version 2.0.
+     Strings from AOSP's FM Radio that this app uses. -->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_name">FM-Radio</string>
+    <string name="optmenu_speaker">Lautsprecher</string>
+    <string name="optmenu_earphone">Kopfhörer</string>
+    <string name="talk_prev_station">Virege Sender</string>
+    <string name="talk_decrease">Frequenz erofsetzen</string>
+    <string name="talk_increase">Frequenz erhéijen</string>
+    <string name="talk_next_station">Nächste Sender</string>
+    <string name="talk_add_favorite">Bei d\'Favoritten dobäisetzen</string>
+    <string name="fm_symbol">FM</string>
+    <string name="fm_turn_on">FM-Radio ofspillen oder stoppen</string>
+    <string name="fm_station_list_menu_refresh">Opfrëschen</string>
+    <string name="fm_no_headset_text">Fir Radio ze lauschteren, stiech d\'Kopfhörer (déi als Antenn benotzt ginn) an.</string>
+    <string name="station_title">Radiossenderen</string>
+    <string name="station_searching_tips">Sendere gi gesicht</string>
+    <string name="station_empty_text">Keng Sendere fonnt</string>
+    <string name="favorites">Favoritten</string>
+    <string name="remove_favorite">Favorit ewechhuelen</string>
+</resources>
